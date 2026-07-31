@@ -2,7 +2,8 @@ const express = require("express")
 const cookieParser = require("cookie-parser")
 const cors = require("cors")
 
-const app = express()
+const app = express();
+app.set('trust proxy', 1); // trust first proxy (Render's load balancer)
 
 
 app.use(cors({
