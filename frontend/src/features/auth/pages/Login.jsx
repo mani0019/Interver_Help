@@ -43,24 +43,27 @@ const Login = () => {
 
         <div className="google-login">
           <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              axios
-                .post(
-                  "http://localhost:3000/api/auth/google-login",
-                  {
-                    token: credentialResponse.credential,
-                  },
-                  {
-                    withCredentials: true,
-                  }
-                )
-                .then(async () => {
-                  await getAndSetUser();
-                  navigate("/home");
-                });
-            }}
-            onError={() => console.log("Login Failed")}
-          />
+  onSuccess={(credentialResponse) => {
+    axios
+      .post(
+        `${import.meta.env.VITE_API_URL}/api/auth/google-login`,
+        {
+          token: credentialResponse.credential,
+        },
+        {
+          withCredentials: true,
+        }
+      )
+      .then(async () => {
+        await getAndSetUser();
+        navigate("/home");
+      })
+      .catch((err) => {
+        console.error("Google login failed:", err.response?.data || err.message);
+      });
+  }}
+  onError={() => console.log("Login Failed")}
+/>
         </div>
 
         <div className="divider">
