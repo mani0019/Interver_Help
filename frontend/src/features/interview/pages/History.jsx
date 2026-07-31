@@ -20,7 +20,7 @@ function History() {
                     <h2>My Recent Interview Plans</h2>
                     <ul className="reports-list">
                         {reports.map((report) => {
-                            const score = report.matchScore * 100;
+                            const score = report.matchScore;
                             return (
                                 <li
                                     key={report._id}
