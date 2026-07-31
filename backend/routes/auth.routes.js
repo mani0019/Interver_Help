@@ -9,7 +9,9 @@ const { authLimiter } = require("../config/rateLimit.config");
  * @discription Register a new user
  * @access public
  */
-
+authRoute.post("/test", (req, res) => {
+    res.send("Test route working");
+});
 authRoute.post("/register",authLimiter,authController.registerUser);
 
 /**
@@ -33,6 +35,15 @@ authRoute.get("/logout",authController.logoutUserController);
  * @access private
  */
 authRoute.get('/get-me',authmiddleware.authUser,authController.getMeController);
+
+/**
+ * @route POST /api/auth/google-login
+ * @discription Login a user using Google OAuth
+ * @access public
+ */
+console.log("google controller =", authController.googleLoginController);
+
+authRoute.post("/google-login",authController.googleLoginController);
 
 
 

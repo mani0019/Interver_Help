@@ -15,7 +15,17 @@ app.use(cookieParser())
 
 const authRouter = require("../routes/auth.routes.js")
 const interviewRouter = require("../routes/interview.routes.js")
-
+authRouter.stack.forEach((layer) => {
+    if (layer.route) {
+        console.log(
+            Object.keys(layer.route.methods),
+            layer.route.path
+        );
+    }
+});
+app.post("/ping", (req, res) => {
+    res.json({ message: "pong" });
+});
 app.use("/api/auth", authRouter)
 app.use("/api/interview", interviewRouter)
 

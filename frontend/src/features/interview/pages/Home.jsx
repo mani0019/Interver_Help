@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import "../styles/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import LoadingScreen from "../../auth/pages/LoadingScreen.jsx"; // Update the path if needed
+
 
 const Home = () => {
     const [resumeFile, setResumeFile] = useState(null)
@@ -21,21 +23,17 @@ const Home = () => {
     navigate(`/interview/${data._id}`)
 }
 
-    if (loading) {
-        return (
-            <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
-            </main>
-        )
-    }
+     if (loading) {
+    return <LoadingScreen />;
+  }
 
     return (
         <div className='home-page'>
 
             {/* Page Header */}
             <header className='page-header'>
-                <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
-                <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
+                <h1>Carrier Navigator <span className='highlight'>Interview Plan</span></h1>
+                <p>Create a personalized interview roadmap tailored to your target role, experience, and career goals.</p>
             </header>
 
             {/* Main Card */}
@@ -70,6 +68,7 @@ const Home = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             </span>
                             <h2>Your Profile</h2>
+                          <button className='generate-btn' type="button" onClick={()=>navigate('/history')}>history</button>
                         </div>
 
                         {/* Upload Resume */}
@@ -141,36 +140,17 @@ const Home = () => {
 
                 {/* Card Footer */}
                 <div className='interview-card__footer'>
-                    <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
+                    <span className='footer-info'>Strategy Generation &bull; Approx 30s</span>
                     <button onClick={handleGenerateReport} className='generate-btn'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
-                        Generate My Interview Strategy
+                        
+                        Generate Strategy
                     </button>
                 </div>
             </div>
 
-            {/* Recent Reports List */}
-            {reports?.length > 0  && (
-                <section className='recent-reports'>
-                    <h2>My Recent Interview Plans</h2>
-                    <ul className='reports-list'>
-                        {reports.map(report => (
-                            <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
-                                <h3>{report.title || 'Untitled Position'}</h3>
-                                <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
-                                <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            )}
+            
 
-            {/* Page Footer */}
-            <footer className='page-footer'>
-                <a href='#'>Privacy Policy</a>
-                <a href='#'>Terms of Service</a>
-                <a href='#'>Help Center</a>
-            </footer>
+        
         </div>
     )
 }

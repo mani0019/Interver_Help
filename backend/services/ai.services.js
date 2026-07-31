@@ -29,45 +29,98 @@ const interviewReportSchema = z.object({
     title: z.string().describe("The title of the job for which the interview report is generated"),
 })
 
+
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
 
     const prompt = `
-Generate an interview report in this exact JSON structure:
+You are an experienced Technical Recruiter and Software Engineering Interviewer.
+
+Analyze the candidate's profile against the given Job Description and generate a professional interview report.
+
+Rules:
+- Return ONLY valid JSON.
+- Do NOT include markdown, explanations, or code fences.
+- matchScore MUST be an integer between 0 and 100.
+- Calculate the score based on skills, projects, experience, education, and overall relevance.
+- If the candidate matches most required skills, the score should normally be above 80.
+- Only list skill gaps that are mentioned or clearly implied in the Job Description.
+- Do NOT invent missing skills.
+
+Generate:
+
+1. Match Score
+- Integer between 0 and 100.
+
+2. Technical Questions
+- Generate exactly 3 technical interview questions.
+- Each question must include:
+  - question
+  - intention
+  - answer
+- The answer must be detailed (80-150 words) and MUST NOT be empty.
+
+3. Behavioral Questions
+- Generate exactly 3 behavioral interview questions.
+- Each question must include:
+  - question
+  - intention
+  - answer
+- The answer must be detailed (50-80 words) and MUST NOT be empty.
+
+4. Skill Gaps
+- Return a maximum of 3 skill gaps.
+- Include only skills missing from the Job Description.
+- If there are no important gaps, return an empty array.
+
+5. Preparation Plan
+Generate a practical 5-day interview preparation roadmap.
+
+Each day should include:
+- day
+- focus
+- 3 to 5 practical tasks
+
+6. Title
+Return the job title based on the Job Description.
+
+Return this exact JSON format:
 
 {
   "matchScore": number,
   "technicalQuestions": [
     {
-      "question": string,
-      "intention": string,
-      "answer": string
+      "question": "",
+      "intention": "",
+      "answer": ""
     }
   ],
   "behavioralQuestions": [
     {
-      "question": string,
-      "intention": string,
-      "answer": string
+      "question": "",
+      "intention": "",
+      "answer": ""
     }
   ],
   "skillGaps": [
     {
-      "skill": string,
-      "severity": "low" | "medium" | "high"
+      "skill": "",
+      "severity": "low"
     }
   ],
   "preparationPlan": [
     {
-      "day": number,
-      "focus": string,
-      "tasks": [string]
+      "day": 1,
+      "focus": "",
+      "tasks": [
+        ""
+      ]
     }
   ],
-  "title": string
+  "title": ""
 }
 
-Candidate Details:
+Candidate Information
 
 Resume:
 ${resume}
@@ -79,13 +132,12 @@ Job Description:
 ${jobDescription}
 
 Return ONLY valid JSON.
-No markdown.
-`
+`;
 
     const response = await axios.post(
   "https://integrate.api.nvidia.com/v1/chat/completions",
   {
-    model: "meta/llama-4-maverick-17b-128e-instruct",
+    model: "nvidia/llama-3.3-nemotron-super-49b-v1",
 
     messages: [
       {
@@ -94,19 +146,21 @@ No markdown.
       }
     ],
 
-    temperature: 0.15,
+    temperature: 0.2,
     max_tokens: 2048,
     stream: false
   },
 
   {
     headers: {
-      Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
-      Accept: "application/json"
-    }
+    Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+    "Content-Type": "application/json",
+    Accept: "application/json"
+}
   }
 )
-    const content = response.data.choices[0].message.content
+   const content = response.data.choices[0].message.content
+   console.log("Raw AI Response:", content)
 
 
 
@@ -115,7 +169,12 @@ const cleaned = content
   .replace(/```/g, "")
   .trim()
 
-return JSON.parse(cleaned)
+try {
+    return JSON.parse(cleaned);
+} catch (err) {
+    console.log(cleaned);
+    throw new Error("AI returned invalid JSON.");
+}
 
 
 }
@@ -147,56 +206,70 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
         html: z.string().describe("The HTML content of the resume which can be converted to PDF using any library like puppeteer")
     })
 
-    const prompt = `Generate resume for a candidate with the following details:
-                        Resume: ${resume}
-                        Self Description: ${selfDescription}
-                        Job Description: ${jobDescription}
+    const prompt = `
+Create a professional ATS-friendly resume tailored to the following job.
 
-                        the response should be a JSON object with a single field "html" which contains the HTML content of the resume which can be converted to PDF using any library like puppeteer.
-                        The resume should be tailored for the given job description and should highlight the candidate's strengths and relevant experience. The HTML content should be well-formatted and structured, making it easy to read and visually appealing.
-                        The content of resume should be not sound like it's generated by AI and should be as close as possible to a real human-written resume.
-                        you can highlight the content using some colors or different font styles but the overall design should be simple and professional.
-                        The content should be ATS friendly, i.e. it should be easily parsable by ATS systems without losing important information.
-                        The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.Return ONLY valid JSON.
+Candidate Resume:
+${resume}
 
-                                                    Do not include:
-                                                    - explanations
-                                                    - markdown
-                                                    - comments
-                                                    - code fences
-                                                    - text before or after JSON
+Self Description:
+${selfDescription}
 
-                                                    The response format must be:
+Job Description:
+${jobDescription}
 
-                                                    {
-                                                    "html": "<html>...</html>"
-                                                    }
-                    `
+Requirements:
+- Return ONLY valid JSON.
+- Do not use markdown.
+- Do not use code fences.
+- Do not include explanations.
 
-   const response = await axios.post(
-  "https://integrate.api.nvidia.com/v1/chat/completions",
-  {
-    model: "meta/llama-4-maverick-17b-128e-instruct",
+Generate a professional HTML resume.
 
-    messages: [
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
+Rules:
+- Simple HTML only.
+- Inline CSS only.
+- No JavaScript.
+- No SVG.
+- No icons.
+- No images.
+- No gradients.
+- No external fonts.
+- White background.
+- Black text.
+- Maximum one page.
+- Keep the HTML concise.
 
-    temperature: 0.15,
-    max_tokens: 2048,
-    stream: false
-  },
+Return ONLY this JSON:
 
-  {
-    headers: {
-      Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
-      Accept: "application/json"
+{
+  "html": "<html>...</html>"
+}
+`;
+
+const response = await axios.post(
+    "https://integrate.api.nvidia.com/v1/chat/completions",
+    {
+        model: "meta/llama-3.1-8b-instruct",
+        messages: [
+            {
+                role: "user",
+                content: prompt
+            }
+        ],
+        temperature: 0.15,
+        top_p: 0.9,
+        max_tokens: 1100,
+        stream: false
+    },
+    {
+        headers: {
+            Authorization: `Bearer ${process.env.NVIDIA_API_KEY_2}`,
+            "Content-Type": "application/json",
+            Accept: "application/json"
+        }
     }
-  }
-)
+);
 
 
     const rawContent = response.data.choices[0].message.content
@@ -205,15 +278,35 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
 const cleanedContent = rawContent
     .replace(/```json/g, "")
     .replace(/```/g, "")
-    .trim()
+    .trim();
 
-const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/)
+const start = cleanedContent.indexOf("{");
+const end = cleanedContent.lastIndexOf("}");
 
-if (!jsonMatch) {
-    throw new Error("No valid JSON found in AI response")
+if (start === -1 || end === -1) {
+    console.log(cleanedContent);
+    throw new Error("No JSON object found.");
 }
 
-const jsonContent = JSON.parse(jsonMatch[0])
+let jsonContent;
+
+try {
+    jsonContent = JSON.parse(
+        cleanedContent.substring(start, end + 1)
+    );
+} catch (err) {
+    console.log("========== RAW AI RESPONSE ==========");
+    console.log(cleanedContent);
+    console.log("=====================================");
+    throw new Error("Invalid JSON returned by AI.");
+}
+if (!jsonContent.html) {
+    throw new Error("AI did not return HTML.");
+}
+
+if (!jsonContent.html.includes("<html")) {
+    throw new Error("Returned HTML is incomplete.");
+}
 
 const pdfBuffer = await generatePdfFromHtml(jsonContent.html)
 

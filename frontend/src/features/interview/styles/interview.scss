@@ -427,44 +427,31 @@ $severity-low: #3fb950;
     gap: 0.75rem;
 
     &__label {
+        margin: 0;
         font-size: 0.75rem;
         font-weight: 600;
-        text-transform: uppercase;
         letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: $text-muted;
-        margin: 0;
     }
 
     &__list {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
 }
 
 .skill-tag {
-    font-size: 0.775rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
     font-weight: 500;
-    padding: 0.3rem 0.7rem;
-    border-radius: 0.4rem;
-    border: 1px solid;
-    cursor: default;
-
-    &--high {
-        color: $severity-high;
-        background-color: rgba(255, 77, 77, 0.1);
-        border-color: rgba(255, 77, 77, 0.25);
-    }
-
-    &--medium {
-        color: $severity-medium;
-        background-color: rgba(245, 166, 35, 0.1);
-        border-color: rgba(245, 166, 35, 0.25);
-    }
-
-    &--low {
-        color: $severity-low;
-        background-color: rgba(63, 185, 80, 0.1);
-        border-color: rgba(63, 185, 80, 0.25);
-    }
+    color: #4F46E5;
+    background: rgba(79, 70, 229, 0.12);
+    border: 1px solid rgba(79, 70, 229, 0.25);
+    white-space: nowrap;
 }

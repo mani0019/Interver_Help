@@ -1,54 +1,109 @@
-    import React,{useState} from 'react';
-    import '../auth.route.scss'
-    import { useNavigate,Link } from 'react-router';
-    import { useAuth } from '../hooks/useAuth';
+import React, { useState } from "react";
+import axios from "axios";
+import "../auth.route.scss";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import LoadingScreen from "../pages/LoadingScreen";
+import { GoogleLogin } from "@react-oauth/google";
 
+const Login = () => {
+  const { loading, handleLogin, getAndSetUser } = useAuth();
 
-    const Login = () => {
-        const {loading,handleLogin} = useAuth()
-        const navigate = useNavigate()
-        const[email,setEmail] = useState('')
-        const[password,setPassword] = useState('')
-        const handleSubmit = async(e) => {
-        
-            e.preventDefault()
-            const success =await handleLogin(email,password)
-            if(success){
-                navigate('/')
-            }
-            else{
-                alert("Login failed. Please check your credentials and try again.")
-            }
-        }
-        if(loading){
-            return <main><div>Loading...</div></main>
-        }
-        return (
-            
-            <main>
-                <div className='form-container'>
-                    <h1>Login</h1>
-                    <form onSubmit={handleSubmit}>
-                        <div className="input-group">
-                            <label htmlFor="email">Email</label>
-                            <input type="email" id="email" name="email" required placeholder='enter email' onChange={(e)=>{setEmail(e.target.value)}}/>
+  const navigate = useNavigate();
 
-                            
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="password">Password</label>
-                            <input onChange={(e)=>{setPassword(e.target.value)}} type="password" id="password" name="password" required placeholder='enter password' />
-                            
-                            
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-                        </div>
-                        <button className='button button-primary' type="submit">Login</button>
-                    </form>
-                    <p>Don't have an account? <Link to="/register">Register</Link></p>
-                </div>
-            </main>
-        );
+    const success = await handleLogin(email, password);
+
+    if (success) {
+      navigate("/home");
+    } else {
+      alert("Invalid email or password");
     }
+  };
 
-    export default Login;
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <div className="auth-page">
+
+      <div className="auth-card">
+
+        <h1>Welcome Back 👋</h1>
+
+        <p>
+          Login to continue your interview preparation journey.
+        </p>
+
+        <div className="google-login">
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              axios
+                .post(
+                  "http://localhost:3000/api/auth/google-login",
+                  {
+                    token: credentialResponse.credential,
+                  },
+                  {
+                    withCredentials: true,
+                  }
+                )
+                .then(async () => {
+                  await getAndSetUser();
+                  navigate("/home");
+                });
+            }}
+            onError={() => console.log("Login Failed")}
+          />
+        </div>
+
+        <div className="divider">
+          <span>OR</span>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+
+          <div className="input-group">
+            <label>Email</label>
+
+            <input
+              type="email"
+              placeholder="Enter your email"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Password</label>
+
+            <input
+              type="password"
+              placeholder="Enter your password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className="login-btn">
+            Login
+          </button>
+
+        </form>
+
+        <p className="bottom-text">
+          Don't have an account?
+          <Link to="/register"> Register</Link>
+        </p>
+
+      </div>
+
+    </div>
+  );
+};
+
+export default Login;

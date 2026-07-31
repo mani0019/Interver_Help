@@ -2,6 +2,9 @@ const userModel = require("../models/user.model.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const tokenblacklistModel = require("../models/blacklistmodel.js");
+const { OAuth2Client } = require("google-auth-library");
+
+const googleOAuth =new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 async function registerUser(req,res){
@@ -22,6 +25,7 @@ async function registerUser(req,res){
         username,
         email,
         password: hash,
+        provider: "local",
 
     })
     await newUser.save();
@@ -142,7 +146,65 @@ async function getMeController(req,res){
     })
 
 }
+async function googleLoginController(req, res) {
+    const { token } = req.body;
+    let payload;
+    try {
+        const ticket = await googleOAuth.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        payload = ticket.getPayload();
+        
+    }catch (error) {
+        console.error("Error verifying Google token:", error);
+        return res.status(401).json({ message: "Invalid Google token" });
+    }
+    const { email, name, picture, sub, email_verified } = payload;
+
+    let user = await userModel.findOne({ email });
+    if (!email_verified) {
+    return res.status(401).json({
+        message: "Google email is not verified",
+    });
+}
+    if (!user) {
+        user = new userModel({
+            username: name,
+            email: email,
+            provider: "google",
+            googleId: sub,
+            avatar: picture, // No password for Google users
+        });
+        await user.save();
+    }
+
+    const JWTtoken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET_KEY,
+        { expiresIn: "1d" }
+    );
+    res.cookie("token", JWTtoken, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000
+});
+    res.status(200).json({
+        message:"User logged in successfully",
+        user:{
+            id:user._id,
+            username:user.username,
+            email:user.email,
+        }
+    });
+
+
+    
+    
+    
+}
 
 
 
-module.exports = { registerUser,loginUserController,logoutUserController,getMeController };
+module.exports = { registerUser,loginUserController,logoutUserController,getMeController,googleLoginController };

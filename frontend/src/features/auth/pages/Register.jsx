@@ -1,59 +1,89 @@
-import React,{useState} from 'react';
-import '../auth.route.scss'
-import { useNavigate,Link } from 'react-router';
-import useAuth from '../hooks/useAuth.js';
+import React, { useState } from "react";
+import "../auth.route.scss";
+import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import LoadingScreen from "../pages/LoadingScreen";
 
-const Register= () => {
-    const navigate = useNavigate();
-    const [email , setEmail] = useState('');
-    const [username , setUsername] = useState('');
-    const [password , setPassword] = useState('');
+const Register = () => {
+  const navigate = useNavigate();
 
-    const {loading ,handleRegister} = useAuth();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
+  const { loading, handleRegister } = useAuth();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        await handleRegister(username,email,password);
-        navigate('/login');
-        
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const success = await handleRegister(username, email, password);
+
+    if (success) {
+      navigate("/login");
+    } else {
+      alert("Registration failed.");
     }
-    if(loading){
-        return <div>Loading...</div>
-    }
-    return (
-        
-        <main>
-            <div className='form-container'>
-                <h1>Register</h1>
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label htmlFor="username">Username</label>
-                        <input onChange={(e)=>{setUsername(e.target.value)}} type="text" id="username" name="username" required placeholder='enter username' />
+  };
 
-                        
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="email">Email</label>
-                        <input onChange={(e)=>{setEmail(e.target.value)}} type="email" id="email" name="email" required placeholder='enter email' />
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1>Create Account</h1>
 
-                        
+        <p>
+          Join Career Navigator and start preparing for your dream job.
+        </p>
 
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="password">Password</label>
-                        <input onChange={(e)=>{setPassword(e.target.value)}} type="password" id="password" name="password" required placeholder='enter password' />
-                        
-                        
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label>Username</label>
 
-                    </div>
-                    <button className='button button-primary' type="submit">Register</button>
-                </form>
-                <p>Already have an account? <Link to="/login">Login</Link></p>
-            </div>
-        </main>
-    );
-}
+            <input
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Email</label>
+
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Password</label>
+
+            <input
+              type="password"
+              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className="login-btn" type="submit">
+            Create Account
+          </button>
+        </form>
+
+        <p className="bottom-text">
+          Already have an account?
+          <Link to="/login"> Login</Link>
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default Register;

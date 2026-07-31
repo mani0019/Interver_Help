@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import '../styles/interview.scss'
 import { useInterview } from '../hooks/useInterview.js'
 import { useParams } from 'react-router'
+import LoadingScreen from "../../auth/pages/LoadingScreen.jsx"; // Update the path if needed
+
 
 const NAV_ITEMS = [
     {
@@ -126,22 +128,18 @@ const Interview = () => {
 
     console.log("REPORT DATA:", report)
 
-    if (loading) {
-        return (
-            <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
-            </main>
-        )
-    }
+      if (loading) {
+    return <LoadingScreen />;
+  }
 
     const safeReport = {
-        technicalQuestions: report?.technicalQuestions || [],
-        behavioralQuestions: report?.behavioralQuestions || [],
-        preparationPlan: report?.preparationPlan || [],
-        skillGaps: report?.skillGaps || [],
-        matchScore: Math.round((report?.matchScore || 0) * 100),
-    }
-
+    technicalQuestions: report?.technicalQuestions || [],
+    behavioralQuestions: report?.behavioralQuestions || [],
+    preparationPlan: report?.preparationPlan || [],
+    skillGaps: report?.skillGaps || [],
+    matchScore: Math.round(report?.matchScore || 0),
+};
+    console.log(safeReport.matchScore);
     const scoreColor =
         safeReport.matchScore >= 80
             ? 'score--high'
@@ -292,8 +290,14 @@ const Interview = () => {
                         </div>
 
                         <p className='match-score__sub'>
-                            Strong match for this role
-                        </p>
+    {safeReport.matchScore >= 80
+        ? "Strong match for this role"
+        : safeReport.matchScore >= 60
+        ? "Moderate match for this role"
+        : safeReport.matchScore >= 40
+        ? "Fair match for this role"
+        : "Weak match for this role"}
+</p>
 
                     </div>
 
