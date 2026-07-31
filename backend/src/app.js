@@ -3,7 +3,11 @@ const cookieParser = require("cookie-parser")
 const cors = require("cors")
 
 const app = express();
-app.set('trust proxy', 1); // trust first proxy (Render's load balancer)
+app.set('trust proxy', 1);
+app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+    next()
+}) // trust first proxy (Render's load balancer)
 
 
 app.use(cors({
